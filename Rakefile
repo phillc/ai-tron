@@ -8,7 +8,11 @@ class MyBot
   end
 
   def run_command
-    "#{package_path}/run.sh"
+    "./run.sh"
+  end
+
+  def compile
+
   end
 end
 
@@ -32,6 +36,10 @@ class ExampleBot
   def run_command
     "java -jar #{@filename}"
   end
+
+  def compile
+
+  end
 end
 
 module Engine
@@ -50,14 +58,14 @@ module Engine
       Dir[File.dirname(__FILE__) + "/maps/*"]
     end
 
-    def get_random_map
-      maps.sample
+    def get_map
+      (ENV['MAP'] && "maps/#{ENV['MAP']}.txt") || maps.sample
     end
   end
 
   class Java < Base
     def matchup bot1, bot2
-      map = get_random_map
+      map = get_map
       command = %Q{java -jar engine/java/Tron.jar #{map} "#{bot1.run_command}" "#{bot2.run_command}" 0}
       puts command
       Kernel.exec command
@@ -66,7 +74,7 @@ module Engine
 
   class Python < Base
     def matchup bot1, bot2
-      map = get_random_map
+      map = get_map
       command = %Q{./engine/python/round.py -v "#{bot1.run_command}" "#{bot2.run_command}" --board-file=#{map}}
       puts command
       Kernel.exec command
@@ -79,6 +87,7 @@ Engine.all.each do |engine|
     [MyBot.new].product(ExampleBot.all).each do |bots|
       desc "using the #{engine.name} engine to play #{bots.map(&:description).join(" vs ")}"
       task bots.map(&:name).map(&:downcase).join(":") do
+        bots.each(&:compile)
         engine.matchup *bots
       end
     end

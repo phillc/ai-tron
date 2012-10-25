@@ -2,6 +2,7 @@
 ;;
 ;;  by Nicolas Buduroi
 
+(ns tron.bot (:gen-class))
 (use 'map)
 
 (defn north? [d] (= d :north))
